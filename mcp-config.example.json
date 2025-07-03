@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unit-test-generator": {
+      "command": "node",
+      "args": ["/path/to/unit-test-mcp/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "description": "Generates unit tests following custom rules and patterns"
+    }
+  }
+}

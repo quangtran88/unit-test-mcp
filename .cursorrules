@@ -1,0 +1,34 @@
+# Unit Test Generation Rules
+
+## Test Generation Workflow
+When generating unit tests, ALWAYS follow this sequence:
+1. First analyze the file structure using `analyze_file_structure` tool
+2. Run `analyze_advanced_patterns` for comprehensive analysis  
+3. Then use `generate_unit_test` tool with the analysis results
+4. Finally validate the generated test with `validate_test_patterns`
+
+## Tool Priority
+- ALWAYS use MCP tools before writing any test code manually
+- Prefer tool-generated tests over manual test creation
+- Use the advanced analysis tools to understand complex patterns and dependencies
+- Apply the project's custom test patterns and rules through the tools
+
+## Test Organization Rules
+- Group setup variables logically (models first, repos second, services third)
+- Create separate `beforeEach` in nested describe blocks for method-specific setup
+- Don't stub protected/private methods - test through public interface
+- Focus on testing method contracts and side effects, not implementation details
+
+## Mocking Patterns
+- Use Sinon sandbox pattern: `sandbox = createSandbox()` in beforeEach
+- Use `ts-sinon` `stubInterface<T>()` for interface mocking
+- Use `StubbedInstance<T>` type for all mocked dependencies
+- Use factory pattern for creating test data with `.extend()` for customization
+
+## Assertion Patterns  
+- Always use `.args` to assert call arguments instead of `.calledWith`
+- Assert whole call arguments as arrays: `expect(methodStub.args).toEqual([[...], [...], ...])`
+- Use `expect().toEqual()` for object/array comparisons, not `toBe()`
+- Use `.notCalled` for checking methods weren't called
+
+When asked to generate tests, IMMEDIATELY start with tool analysis rather than manual code generation. 
