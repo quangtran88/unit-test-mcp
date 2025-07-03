@@ -37,6 +37,13 @@ Perfect for use with **Cursor IDE** and other MCP-compatible editors to accelera
 ```bash
 git clone https://github.com/randytran/unit-test-mcp.git
 cd unit-test-mcp
+chmod +x setup.sh  # Make setup script executable
+./setup.sh          # Automated setup - installs, builds, and configures everything
+```
+
+**Or manual installation:**
+
+```bash
 npm install
 npm run build
 ```
@@ -67,7 +74,14 @@ Add to your Cursor settings (`.cursorrules` or MCP configuration):
 
 ### Quick Setup
 
-Use the provided example configuration:
+**Option 1: Automated Setup (Recommended)**
+
+```bash
+./setup.sh
+# This will install dependencies, build the project, and create mcp-config.json automatically
+```
+
+**Option 2: Manual Setup**
 
 ```bash
 cp mcp-config.example.json mcp-config.json

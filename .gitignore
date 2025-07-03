@@ -142,5 +142,7 @@ build/
 .tmp/
 
 # Runtime configuration files that shouldn't be versioned
-mcp-config.json
-config.json 
+config.json
+
+# Generated config files (created by setup.sh)
+mcp-config.json 
