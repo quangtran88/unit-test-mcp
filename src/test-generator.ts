@@ -39,8 +39,8 @@ export class TestGenerator {
 
     // Required imports for tests
     baseImports: [
-      "import { createSandbox, SinonSandbox, SinonStubbedInstance } from 'sinon';",
-      "import { stubInterface } from 'ts-sinon';",
+      "import { createSandbox, SinonSandbox } from 'sinon';",
+      "import { stubInterface, StubbedInstance } from 'ts-sinon';",
       "import { catchPromise } from '@common/utils/test-helpers';",
       "import { fake } from '@common/test';",
     ],
@@ -58,7 +58,8 @@ export class TestGenerator {
     analysis: FileAnalysis,
     testType?: string,
     methodName?: string,
-    options: TestGenerationOptions = this.getDefaultOptions()
+    options: TestGenerationOptions = this.getDefaultOptions(),
+    skipImportsAndSetup: boolean = false
   ): string {
     const className =
       analysis.className ||
@@ -76,7 +77,8 @@ export class TestGenerator {
       className,
       actualTestType,
       methodName,
-      options
+      options,
+      skipImportsAndSetup
     );
     return testCode;
   }
@@ -136,8 +138,20 @@ export class TestGenerator {
     className: string,
     testType: string,
     methodName?: string,
-    options: TestGenerationOptions = this.getDefaultOptions()
+    options: TestGenerationOptions = this.getDefaultOptions(),
+    skipImportsAndSetup: boolean = false
   ): string {
+    if (skipImportsAndSetup) {
+      return this.generateTestSuites(
+        analysis,
+        className,
+        testType,
+        methodName,
+        options,
+        false // Don't close main describe block since we're not creating one
+      );
+    }
+
     const imports = this.generateImports(analysis);
     const mockSetup = this.generateMockSetup(analysis, testType);
     const testSuites = this.generateTestSuites(
@@ -217,7 +231,7 @@ ${teardown}`;
         const interfaceType = this.extractInterfaceType(param.type);
         if (interfaceType) {
           mocks.push(
-            `let ${param.name}Mock: SinonStubbedInstance<${interfaceType}>;`
+            `let ${param.name}Mock: StubbedInstance<${interfaceType}>;`
           );
         }
       });
@@ -324,7 +338,8 @@ ${teardown}`;
     className: string,
     testType: string,
     methodName?: string,
-    options: TestGenerationOptions = this.getDefaultOptions()
+    options: TestGenerationOptions = this.getDefaultOptions(),
+    closeMainDescribe: boolean = true
   ): string {
     const testSuites: string[] = [];
 
@@ -341,7 +356,9 @@ ${teardown}`;
       }
     });
 
-    testSuites.push("});"); // Close the main describe block
+    if (closeMainDescribe) {
+      testSuites.push("});"); // Close the main describe block
+    }
 
     return testSuites.join("\n\n");
   }

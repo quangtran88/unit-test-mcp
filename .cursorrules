@@ -1,34 +1,318 @@
 # Unit Test Generation Rules
 
 ## Test Generation Workflow
+
 When generating unit tests, ALWAYS follow this sequence:
+
 1. First analyze the file structure using `analyze_file_structure` tool
-2. Run `analyze_advanced_patterns` for comprehensive analysis  
+2. Run `analyze_advanced_patterns` for comprehensive analysis
 3. Then use `generate_unit_test` tool with the analysis results
 4. Finally validate the generated test with `validate_test_patterns`
 
 ## Tool Priority
+
 - ALWAYS use MCP tools before writing any test code manually
 - Prefer tool-generated tests over manual test creation
 - Use the advanced analysis tools to understand complex patterns and dependencies
 - Apply the project's custom test patterns and rules through the tools
 
 ## Test Organization Rules
+
 - Group setup variables logically (models first, repos second, services third)
 - Create separate `beforeEach` in nested describe blocks for method-specific setup
 - Don't stub protected/private methods - test through public interface
 - Focus on testing method contracts and side effects, not implementation details
 
 ## Mocking Patterns
+
 - Use Sinon sandbox pattern: `sandbox = createSandbox()` in beforeEach
 - Use `ts-sinon` `stubInterface<T>()` for interface mocking
 - Use `StubbedInstance<T>` type for all mocked dependencies
 - Use factory pattern for creating test data with `.extend()` for customization
 
-## Assertion Patterns  
+## Assertion Patterns
+
 - Always use `.args` to assert call arguments instead of `.calledWith`
 - Assert whole call arguments as arrays: `expect(methodStub.args).toEqual([[...], [...], ...])`
 - Use `expect().toEqual()` for object/array comparisons, not `toBe()`
 - Use `.notCalled` for checking methods weren't called
 
-When asked to generate tests, IMMEDIATELY start with tool analysis rather than manual code generation. 
+When asked to generate tests, IMMEDIATELY start with tool analysis rather than manual code generation.
+
+# Cursor Rules for Step-by-Step Unit Test Generation
+
+## 🚨 CRITICAL RULE: Always Write Generated Code to Files
+
+**YOU MUST WRITE CODE TO FILES** - Don't just call MCP tools and show responses. After every `generate_method_test` call:
+
+1. Extract the TypeScript test code from the tool response
+2. Write it to the appropriate `.test.ts` file
+3. Create the file if it doesn't exist, or append to existing file
+4. Show the user exactly what was written and where
+
+**Example workflow:**
+
+```
+1. Call: @unit-test-generator generate_method_test sessionId="..." methodName="createUser"
+2. Extract: The TypeScript code from the tool response
+3. Write: Code to UserService.test.ts file
+4. Confirm: "I've written the test for createUser() to UserService.test.ts"
+```
+
+## Unit Test Generation Workflow
+
+When users request unit test generation, ALWAYS follow this decision tree:
+
+### 1. Assess Test Generation Approach
+
+**Use STEP-BY-STEP approach when:**
+
+- User mentions "step by step", "guided", "method by method", or "one at a time"
+- File has more than 5 methods
+- User wants to learn the testing process
+- Complex services with many dependencies
+- User asks for "help with testing" or "guidance"
+
+**Use TRADITIONAL approach when:**
+
+- User explicitly requests "generate all tests"
+- Simple files with few methods
+- User is experienced and wants bulk generation
+- Quick prototyping scenarios
+
+### 2. Step-by-Step Workflow (PREFERRED for learning/complex cases)
+
+**Phase 1: Exploration & Planning**
+
+```
+1. START with: list_methods
+   - Purpose: Show user the scope and complexity
+   - Always include testType parameter when known
+   - Example: "Let me first analyze the methods in your service to understand the scope and complexity."
+
+2. FOLLOW with: plan_test_generation
+   - Purpose: Create structured plan with session ID
+   - Explain the phases and methodology
+   - Example: "Now I'll create a step-by-step plan that prioritizes methods by complexity and dependencies."
+```
+
+**Phase 2: Guided Execution**
+
+```
+3. REPEAT this cycle until complete:
+   a. get_next_method (get recommendation)
+   b. generate_method_test (create test)
+   c. WRITE THE GENERATED CODE to the test file
+   d. track_progress (show status) - every 2-3 methods
+
+4. GUIDE the user through each step:
+   - Explain WHY this method was chosen
+   - Highlight complexity and dependencies
+   - WRITE the generated test code to appropriate files
+   - Show progress after each generation
+```
+
+### 3. Communication Guidelines
+
+**ALWAYS explain the approach:**
+
+- "I'll use the step-by-step approach to help you build tests systematically"
+- "This method prioritizes complex business logic first, then dependencies, then utilities"
+- "You'll be able to review and understand each test as we build them"
+
+**For each method generation:**
+
+- Explain the method's complexity and why it's next
+- Highlight key dependencies that need mocking
+- Show progress and remaining work
+- Suggest next steps
+
+**Session management:**
+
+- Always mention the session ID when creating plans
+- Remind users that sessions expire after 1 hour
+- Offer to create new sessions if needed
+
+### 4. Tool Usage Patterns
+
+**Initial Analysis:**
+
+```typescript
+// Always start with method analysis
+@unit-test-generator list_methods filePath="path/to/file.ts" testType="service"
+```
+
+**Planning Phase:**
+
+```typescript
+// Create comprehensive plan
+@unit-test-generator plan_test_generation filePath="path/to/file.ts" testType="service"
+```
+
+**Execution Cycle:**
+
+```typescript
+// Get next recommendation
+@unit-test-generator get_next_method sessionId="session-id"
+
+// Generate test for recommended method
+@unit-test-generator generate_method_test sessionId="session-id" methodName="methodName"
+
+// IMMEDIATELY write the generated code to the test file
+// Extract code from tool response and create/update the .test.ts file
+
+// Check progress (every 2-3 methods)
+@unit-test-generator track_progress sessionId="session-id"
+```
+
+**IMPORTANT: File Writing Workflow**
+For each generate_method_test call:
+
+1. Call the MCP tool to generate test code
+2. Parse the generated TypeScript code from the tool response
+3. Write the code to the appropriate test file (create if new, append if existing)
+4. Show the user what was written and where
+5. Confirm the file was created/updated successfully
+
+### 5. Error Handling & Recovery
+
+**Session not found:**
+
+- Explain that sessions expire after 1 hour
+- Offer to create a new plan
+- Use list_methods to show current state
+
+**Method not found:**
+
+- Check method name spelling
+- Use list_methods to show available methods
+- Explain that only public methods are tested
+
+**Complex dependencies:**
+
+- Explain the dependency analysis from get_next_method
+- Guide user on mock setup requirements
+- Suggest breaking down overly complex methods
+
+### 6. Progress Communication
+
+**Visual feedback:**
+
+- Always explain progress bars: "[████████░░] 80%"
+- Celebrate milestones: "Great! You're halfway done!"
+- Show phase completion: "✅ Phase 1 (Critical Methods) complete!"
+
+**Motivational guidance:**
+
+- "You're making excellent progress!"
+- "The hardest methods are behind you now"
+- "Just X more methods to complete your test suite!"
+
+### 7. Advanced Features
+
+**Custom output paths:**
+
+```typescript
+@unit-test-generator plan_test_generation filePath="file.ts" outputPath="custom/path.test.ts"
+```
+
+**Review mode (generate without marking complete):**
+
+```typescript
+@unit-test-generator generate_method_test sessionId="id" methodName="method" markCompleted=false
+```
+
+### 8. Code Writing & File Management
+
+**CRITICAL: Always write generated code to files**
+After each generate_method_test call, you MUST:
+
+1. Extract the generated test code from the tool response
+2. Write it to the appropriate test file
+3. Create the test file if it doesn't exist
+4. Append to existing test file if it does exist
+
+**File creation workflow:**
+
+```typescript
+// 1. Call the tool
+@unit-test-generator generate_method_test sessionId="session-id" methodName="createUser"
+
+// 2. Extract the TypeScript code from the response
+// 3. Write to test file (e.g., UserService.test.ts)
+// 4. Show user what was written and where
+```
+
+**File management rules:**
+
+- Create new test files with proper naming convention (e.g., UserService.test.ts)
+- Append individual method tests to existing test files
+- Maintain proper test file structure with imports, setup, and teardown
+- Show users exactly what code was written and to which file
+
+**Integration Best Practices:**
+
+- WRITE the generated code immediately after tool returns it
+- Show users the file path where code was written
+- Suggest running tests after each method to verify
+- Recommend incremental commits after each method
+
+**Code review:**
+
+- Encourage reviewing each generated test
+- Explain the test structure and patterns
+- Suggest modifications for specific use cases
+- Point out the specific file location of new tests
+
+### 9. Fallback to Traditional Approach
+
+**When step-by-step isn't working:**
+
+```typescript
+// Fall back to traditional full-file generation
+@unit-test-generator generate_unit_test filePath="file.ts" mode="generate" testType="service"
+```
+
+**Analysis-only mode:**
+
+```typescript
+// Provide analysis without generation
+@unit-test-generator generate_unit_test filePath="file.ts" mode="analyze"
+```
+
+## Default Behavior
+
+**Unless explicitly requested otherwise, ALWAYS:**
+
+1. Start with step-by-step approach for complex files (>3 methods)
+2. Explain the approach and benefits
+3. Guide users through the entire workflow
+4. **WRITE GENERATED CODE TO FILES** - Never just show code, always write it
+5. Provide encouraging progress updates
+6. Offer helpful tips and explanations
+7. Confirm file creation/updates with specific paths
+
+**Remember:** The goal is to make unit testing approachable, educational, and systematic. The step-by-step approach helps users understand testing principles while building comprehensive test suites.
+
+## ⚠️ FINAL REMINDER: WRITE CODE TO FILES
+
+**DO NOT just call MCP tools and show responses in chat.**
+**DO write the generated TypeScript code to actual .test.ts files.**
+**DO confirm with users where files were created/updated.**
+
+Every test generation session should result in actual test files being created or updated in the user's codebase.
+
+## Quick Reference Commands
+
+For experienced users who want direct commands:
+
+```bash
+# Full workflow
+list_methods → plan_test_generation → get_next_method → generate_method_test → track_progress
+
+# Session management
+plan_test_generation  # Creates session
+track_progress        # Shows status
+get_next_method      # Gets recommendation
+generate_method_test # Creates test + updates progress
+```

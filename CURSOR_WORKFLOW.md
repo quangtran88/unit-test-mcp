@@ -9,19 +9,17 @@ Use: _"Analyze UserService.ts structure and patterns, then generate comprehensiv
 
 ### 2. Explicit Tool Commands
 
-- `@analyze_file_structure UserService.ts` - Analyze file structure first
-- `@analyze_advanced_patterns UserService.ts` - Deep pattern analysis
-- `@generate_unit_test UserService.ts` - Generate tests with analysis
-- `@validate_test_patterns UserService.test.ts` - Validate generated tests
+- `@generate_unit_test UserService.ts mode="analyze"` - Deep pattern and structure analysis
+- `@generate_unit_test UserService.ts` - Generate tests with analysis (default mode)
+- `@generate_unit_test UserService.test.ts mode="validate"` - Validate test files
 
 ### 3. Multi-Step Workflow Prompts
 
 ```
 "For UserService.ts:
-1. First analyze the file structure
-2. Identify complex patterns and dependencies
-3. Generate comprehensive unit tests
-4. Validate against our test patterns"
+1. Analyze patterns, structure, and dependencies with mode='analyze'
+2. Generate comprehensive unit tests (default mode)
+3. Validate with mode='validate'"
 ```
 
 ### 4. Analysis-First Language
@@ -38,10 +36,9 @@ Use phrases that trigger analysis:
 ### Sequential Analysis Pattern
 
 ```
-@analyze_file_structure services/EmailService.ts
-@analyze_advanced_patterns services/EmailService.ts
-@generate_unit_test services/EmailService.ts service
-@validate_test_patterns services/EmailService.test.ts
+@generate_unit_test services/EmailService.ts mode="analyze"
+@generate_unit_test services/EmailService.ts testType="service"
+@generate_unit_test services/EmailService.test.ts mode="validate"
 ```
 
 ### Batch Analysis Pattern
@@ -68,9 +65,9 @@ These prompts will ALWAYS trigger tool usage:
 
 Add these to your Cursor snippets:
 
-- `tg-analyze`: `@analyze_file_structure $1 && @analyze_advanced_patterns $1`
-- `tg-full`: `@analyze_file_structure $1 && @analyze_advanced_patterns $1 && @generate_unit_test $1 $2`
-- `tg-validate`: `@validate_test_patterns $1`
+- `tg-analyze`: `@generate_unit_test $1 mode="analyze"`
+- `tg-full`: `@generate_unit_test $1 mode="analyze" && @generate_unit_test $1 testType="$2"`
+- `tg-validate`: `@generate_unit_test $1 mode="validate"`
 
 ## 🚫 Avoid These Prompts
 

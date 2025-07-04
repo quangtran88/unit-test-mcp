@@ -47,18 +47,20 @@ File Path: ./src/services/UserService.ts
 Test Type: service
 ```
 
-### Analyze File Structure
+### Analyze Advanced Patterns
 
 ```
-Tool: analyze_file_structure
+Tool: generate_unit_test
 File Path: ./src/services/UserService.ts
+Mode: analyze
 ```
 
 ### Validate Existing Tests
 
 ```
-Tool: validate_test_patterns
-Test File Path: ./src/services/UserService.test.ts
+Tool: generate_unit_test
+File Path: ./src/services/UserService.test.ts
+Mode: validate
 ```
 
 ## Generated Test Structure

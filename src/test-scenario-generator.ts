@@ -39,43 +39,65 @@ export class TestScenarioGenerator {
     methodDecl?: MethodDeclaration
   ): TestScenario["scenarios"] {
     const scenarios: TestScenario["scenarios"] = [];
+    const seenScenarios = new Set<string>(); // Track unique scenarios
 
     // Generate success scenario
-    scenarios.push({
+    const successScenario = {
       name: `${method.name} success`,
-      type: "success",
+      type: "success" as const,
       setup: this.generateSuccessSetup(method, dependencies),
       expectations: ["expect(result).toEqual(expectedResult)"],
       priority: 5,
-    });
+    };
+    scenarios.push(successScenario);
+    seenScenarios.add(this.getScenarioKey(successScenario));
 
-    // Generate error scenarios
+    // Generate error scenarios with deduplication
     method.errorPaths.forEach((errorPath) => {
-      scenarios.push({
+      const errorScenario = {
         name: `${method.name} error - ${errorPath.condition}`,
-        type: "error",
+        type: "error" as const,
         setup: [`Setup condition: ${errorPath.condition}`],
         expectations: [`should throw ${errorPath.errorType}`],
         priority: 4,
-      });
+      };
+
+      const scenarioKey = this.getScenarioKey(errorScenario);
+      if (!seenScenarios.has(scenarioKey)) {
+        scenarios.push(errorScenario);
+        seenScenarios.add(scenarioKey);
+      }
     });
 
-    // Add basic edge case scenarios
+    // Add basic edge case scenarios with deduplication
     if (methodDecl) {
       const parameters = methodDecl.getParameters();
       parameters.forEach((param) => {
         const paramName = param.getName();
-        scenarios.push({
+        const edgeCaseScenario = {
           name: `${method.name} with null ${paramName}`,
-          type: "edge-case",
+          type: "edge-case" as const,
           setup: [`const ${paramName} = null`],
           expectations: ["expect(() => method(null)).toThrow()"],
           priority: 3,
-        });
+        };
+
+        const scenarioKey = this.getScenarioKey(edgeCaseScenario);
+        if (!seenScenarios.has(scenarioKey)) {
+          scenarios.push(edgeCaseScenario);
+          seenScenarios.add(scenarioKey);
+        }
       });
     }
 
     return scenarios;
+  }
+
+  private getScenarioKey(scenario: TestScenario["scenarios"][0]): string {
+    // Create a unique key based on name, type, and setup/expectations
+    return `${scenario.name}|${scenario.type}|${JSON.stringify(
+      scenario.setup
+    )}|${JSON.stringify(scenario.expectations)}`;
   }
 
   private generateSuccessSetup(

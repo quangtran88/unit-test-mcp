@@ -28,15 +28,23 @@ export class ErrorPathAnalyzer {
 
     method
       .getDescendantsOfKind(SyntaxKind.ThrowStatement)
-      .forEach((throwStmt) => {
+      .forEach((throwStmt, index) => {
         const errorMessage = this.extractErrorMessage(throwStmt);
         const errorType = this.extractErrorType(throwStmt);
         const nestedLevel = this.calculateNestingLevel(throwStmt);
         const category = this.categorizeError(errorType, errorMessage);
         const severity = this.assessErrorSeverity(errorType, category);
 
+        // Create more specific condition based on error message/type or context
+        const condition = this.generateSpecificCondition(
+          throwStmt,
+          errorMessage,
+          errorType,
+          index
+        );
+
         errorPaths.push({
-          condition: "explicit throw",
+          condition,
           errorType,
           errorMessage,
           isExpected: true,
@@ -50,6 +58,106 @@ export class ErrorPathAnalyzer {
       });
 
     return errorPaths;
+  }
+
+  private generateSpecificCondition(
+    throwStmt: any,
+    errorMessage?: string,
+    errorType?: string,
+    index?: number
+  ): string {
+    // Try to extract meaningful condition from error message
+    if (errorMessage) {
+      const message = errorMessage.toLowerCase();
+
+      if (message.includes("required") || message.includes("missing")) {
+        return "missing required parameter";
+      }
+      if (message.includes("invalid") || message.includes("bad")) {
+        return "invalid input provided";
+      }
+      if (message.includes("not found") || message.includes("does not exist")) {
+        return "entity not found";
+      }
+      if (message.includes("unauthorized") || message.includes("permission")) {
+        return "unauthorized access";
+      }
+      if (message.includes("duplicate") || message.includes("already exists")) {
+        return "duplicate entity";
+      }
+      if (message.includes("validation")) {
+        return "validation error";
+      }
+      if (message.includes("positive") || message.includes("negative")) {
+        return "value validation error";
+      }
+      if (message.includes("format") || message.includes("email")) {
+        return "format validation error";
+      }
+    }
+
+    // Try to extract condition from error type
+    if (errorType) {
+      const type = errorType.toLowerCase();
+      if (type.includes("validation")) {
+        return "validation failure";
+      }
+      if (type.includes("notfound")) {
+        return "resource not found";
+      }
+      if (type.includes("unauthorized")) {
+        return "access denied";
+      }
+      if (type.includes("conflict")) {
+        return "resource conflict";
+      }
+    }
+
+    // Try to get context from surrounding code
+    const parentContext = this.getParentContext(throwStmt);
+    if (parentContext) {
+      return parentContext;
+    }
+
+    // If all else fails, use explicit throw with index to differentiate
+    const suffix = index !== undefined && index > 0 ? ` (${index + 1})` : "";
+    return `explicit throw${suffix}`;
+  }
+
+  private getParentContext(throwStmt: any): string | null {
+    let current = throwStmt.getParent();
+
+    // Look for meaningful parent context
+    while (current) {
+      if (current.getKind() === SyntaxKind.IfStatement) {
+        const condition = current.getExpression()?.getText();
+        if (condition) {
+          if (
+            condition.includes("!") ||
+            condition.includes("null") ||
+            condition.includes("undefined")
+          ) {
+            return "null check failed";
+          }
+          if (condition.includes("length") && condition.includes("0")) {
+            return "empty collection";
+          }
+          if (condition.includes("===") || condition.includes("!==")) {
+            return "equality check failed";
+          }
+          return `condition check: ${condition.slice(0, 30)}...`;
+        }
+      }
+      if (current.getKind() === SyntaxKind.CatchClause) {
+        return "exception caught";
+      }
+      if (current.getKind() === SyntaxKind.MethodDeclaration) {
+        break;
+      }
+      current = current.getParent();
+    }
+
+    return null;
   }
 
   private analyzeConditionalErrors(method: MethodDeclaration): ErrorPath[] {

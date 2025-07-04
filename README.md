@@ -90,44 +90,45 @@ cp mcp-config.example.json mcp-config.json
 
 ## 🛠 Available Tools
 
-### `generate_unit_test`
+### Core Tool: `generate_unit_test`
 
-Generates comprehensive Jest unit tests with advanced analysis insights.
+**One comprehensive tool that handles all unit testing needs** - analysis, generation, and validation.
+
+### 🆕 Step-by-Step Generation Tools
+
+**New guided workflow tools for method-by-method test creation:**
+
+- **`list_methods`**: Analyze all methods with complexity and priority scoring
+- **`plan_test_generation`**: Create structured test generation plans with session tracking
+- **`get_next_method`**: Get intelligent recommendations for which method to test next
+- **`generate_method_test`**: Generate tests for specific methods with progress tracking
+- **`track_progress`**: Monitor completion status with visual progress indicators
+
+👉 **See [STEP_BY_STEP_GUIDE.md](./STEP_BY_STEP_GUIDE.md) for detailed documentation.**
+
+### Traditional Tool: `generate_unit_test`
 
 **Parameters:**
 
-- `filePath` (required): Path to the source file
+- `filePath` (required): Path to the source file to analyze/generate tests for
+- `mode` (optional): Operation mode - `"generate"` (default), `"analyze"`, or `"validate"`
+- `methodName` (optional): Focus on specific method only
 - `testType` (optional): Component type (service, repository, controller, model, utility)
 - `outputPath` (optional): Custom output path for the test file
+- `includeTestSuggestions` (optional): Include test scenarios in analysis (default: true)
+- `validateGenerated` (optional): Validate generated tests automatically (default: false)
 
-### `analyze_advanced_patterns`
+**Usage Modes:**
 
-Performs deep code analysis with detailed insights and test recommendations.
-
-**Parameters:**
-
-- `filePath` (required): Path to the file to analyze
-- `includeTestSuggestions` (optional): Include test scenarios (default: true)
-
-### `analyze_file_structure`
-
-Basic file structure analysis for understanding code organization.
-
-**Parameters:**
-
-- `filePath` (required): Path to the file to analyze
-
-### `validate_test_patterns`
-
-Validates existing test files against Jest patterns and best practices.
-
-**Parameters:**
-
-- `testFilePath` (required): Path to the test file to validate
+- **Generate Mode** (default): `mode: "generate"` - Creates comprehensive unit tests with analysis insights
+- **Analyze Mode**: `mode: "analyze"` - Provides detailed code analysis and test recommendations only
+- **Validate Mode**: `mode: "validate"` - Validates existing test files against patterns and best practices
 
 ## 💡 Quick Start
 
-### 1. Install and Configure
+### Option 1: Traditional Full-File Generation
+
+#### 1. Install and Configure
 
 ```bash
 git clone https://github.com/randytran/unit-test-mcp.git
@@ -137,18 +138,61 @@ npm run build
 # Add to your MCP client configuration
 ```
 
-### 2. Generate Your First Test
+#### 2. Generate Your First Test
 
 ```typescript
 // In Cursor or your MCP client
 @unit-test-generator generate_unit_test filePath="src/services/UserService.ts" testType="service"
 ```
 
-### 3. Analyze Code Patterns
+#### 3. Analyze Code Patterns
 
 ```typescript
-@unit-test-generator analyze_advanced_patterns filePath="src/services/PaymentService.ts"
+@unit-test-generator generate_unit_test filePath="src/services/PaymentService.ts" mode="analyze"
 ```
+
+#### 4. Validate Existing Tests
+
+```typescript
+@unit-test-generator generate_unit_test filePath="src/services/UserService.test.ts" mode="validate"
+```
+
+### Option 2: Step-by-Step Generation (🆕 NEW!)
+
+Perfect for complex services or when you want guided, method-by-method test creation:
+
+#### 1. Explore Code Structure
+
+```typescript
+// Analyze methods with complexity and priority
+@unit-test-generator list_methods filePath="src/services/UserService.ts" testType="service"
+```
+
+#### 2. Create Test Generation Plan
+
+```typescript
+// Get a structured plan with session ID for tracking
+@unit-test-generator plan_test_generation filePath="src/services/UserService.ts" testType="service"
+```
+
+#### 3. Follow Guided Workflow
+
+```typescript
+// Get next recommended method to test
+@unit-test-generator get_next_method sessionId="your-session-id"
+
+// Generate test for specific method
+@unit-test-generator generate_method_test sessionId="your-session-id" methodName="createUser"
+
+// Track your progress
+@unit-test-generator track_progress sessionId="your-session-id"
+```
+
+#### 4. Repeat Until Complete
+
+The MCP server guides you through each method with intelligent prioritization and visual progress tracking!
+
+👉 **See [STEP_BY_STEP_GUIDE.md](./STEP_BY_STEP_GUIDE.md) for comprehensive documentation on the new step-by-step features.**
 
 ## 📋 Testing Patterns & Rules
 
